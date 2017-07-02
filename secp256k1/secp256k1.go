@@ -1,9 +1,9 @@
 package secp256k1
 
 // #include <stdlib.h>
-// #include "c-secp256k1/include/secp256k1.h"
-// #include "c-secp256k1/include/secp256k1_ecdh.h"
-// #include "c-secp256k1/include/secp256k1_recovery.h"
+// #include "secp256k1.h"
+// #include "secp256k1_ecdh.h"
+// #include "secp256k1_recovery.h"
 /*
 // https://groups.google.com/forum/#!topic/golang-nuts/pQueMFdY0mk
 // for secp256k1_pubkey**
