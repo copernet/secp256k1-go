@@ -17,7 +17,7 @@ static void freePubkeyArray(secp256k1_pubkey **a) {
         free(a);
 }
 */
-// #cgo LDFLAGS: libsecp256k1.a -lgmp
+// #cgo LDFLAGS: -lsecp256k1 -lgmp
 import "C"
 
 import (
