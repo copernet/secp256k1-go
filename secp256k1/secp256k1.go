@@ -29,11 +29,11 @@ const (
 	/** Flags to pass to secp256k1_context_create. */
 	ContextVerify = uint(C.SECP256K1_CONTEXT_VERIFY)
 	ContextSign   = uint(C.SECP256K1_CONTEXT_SIGN)
-
+	
 	// Flags for EcPubkeySerialize
 	EcCompressed   = uint(C.SECP256K1_EC_COMPRESSED)
 	EcUncompressed = uint(C.SECP256K1_EC_UNCOMPRESSED)
-
+	
 	// Length of elements byte representations
 	LenCompressed   int = 33
 	LenUncompressed int = 65
@@ -41,7 +41,7 @@ const (
 	LenPrivateKey   int = 32
 	LenCompactSig   int = 64
 	LenMaxDerSig    int = 72
-
+	
 	// Errors returned by functions
 	ErrorPrivateKeyNull                string = "Private key cannot be null"
 	ErrorPrivateKeyInvalid             string = "Invalid private key"
@@ -52,26 +52,26 @@ const (
 	ErrorEcdh             string = "Unable to do ECDH"
 	ErrorPublicKeyCreate  string = "Unable to produce public key"
 	ErrorPublicKeyCombine string = "Unable to combine public keys"
-
+	
 	ErrorTweakSize      string = "Tweak must be exactly 32 bytes"
 	ErrorMsg32Size      string = "Message hash must be exactly 32 bytes"
 	ErrorPrivateKeySize string = "Private key must be exactly 32 bytes"
 	ErrorPublicKeySize  string = "Public key must be 33 or 65 bytes"
-
+	
 	ErrorTweakingPublicKey  string = "Unable to tweak this public key"
 	ErrorTweakingPrivateKey string = "Unable to tweak this private key"
-
+	
 	ErrorProducingSignature            string = "Unable to produce signature"
 	ErrorProducingRecoverableSignature string = "Unable to produce recoverable signature"
-
+	
 	ErrorCompactSigSize  string = "Compact signature must be exactly 64 bytes"
 	ErrorCompactSigParse string = "Unable to parse this compact signature"
-
+	
 	ErrorDerSigParse string = "Unable to parse this DER signature"
-
+	
 	ErrorRecoverableSigParse string = "Unable to parse this recoverable signature"
 	ErrorRecoveryFailed      string = "Failed to recover public key"
-
+	
 	ErrorPublicKeyParse string = "Unable to parse this public key"
 )
 
@@ -172,7 +172,7 @@ func EcPubkeyParse(ctx *Context, publicKey []byte) (int, *PublicKey, error) {
 	if l < 1 {
 		return 0, nil, errors.New(ErrorPublicKeySize)
 	}
-
+	
 	pk := newPublicKey()
 	result := int(C.secp256k1_ec_pubkey_parse(ctx.ctx, pk.pk, cBuf(publicKey), C.size_t(l)))
 	if result != 1 {
@@ -193,7 +193,7 @@ func EcPubkeySerialize(ctx *Context, publicKey *PublicKey, flags uint) (int, []b
 	} else {
 		size = LenUncompressed
 	}
-
+	
 	output := make([]C.uchar, size)
 	outputLen := C.size_t(size)
 	result := int(C.secp256k1_ec_pubkey_serialize(ctx.ctx, &output[0], &outputLen, publicKey.pk, C.uint(flags)))
@@ -212,7 +212,7 @@ func EcdsaSignatureParseCompact(ctx *Context, signature []byte) (int, *EcdsaSign
 	if len(signature) != LenCompactSig {
 		return 0, nil, errors.New(ErrorCompactSigSize)
 	}
-
+	
 	sig := newEcdsaSignature()
 	result := int(C.secp256k1_ecdsa_signature_parse_compact(ctx.ctx, sig.sig,
 		(*C.uchar)(unsafe.Pointer(&signature[0])),
@@ -231,6 +231,11 @@ func EcdsaSignatureSerializeCompact(ctx *Context, sig *EcdsaSignature) (int, []b
 	return result, goBytes(output, C.int(LenCompactSig)), nil
 }
 
+func EcdsaSignatureNormalize(ctx *Context, sigout *EcdsaSignature, sigin *EcdsaSignature) (int, error) {
+	result := int(C.secp256k1_ecdsa_signature_normalize(ctx.ctx, sigout.sig, sigin.sig))
+	return result, nil
+}
+
 // Parse a DER ECDSA signature. Returns 1 when the signature
 // could be parsed, 0 otherwise. This function will accept any
 // valid DER encoded signature, even if the encoded numbers are
@@ -240,11 +245,11 @@ func EcdsaSignatureSerializeCompact(ctx *Context, sig *EcdsaSignature) (int, []b
 // guaranteed to fail for every message and public key.
 func EcdsaSignatureParseDer(ctx *Context, signature []byte) (int, *EcdsaSignature, error) {
 	sig := newEcdsaSignature()
-
+	
 	result := int(C.secp256k1_ecdsa_signature_parse_der(ctx.ctx, sig.sig,
 		(*C.uchar)(unsafe.Pointer(&signature[0])),
 		(C.size_t)(len(signature))))
-
+	
 	if result != 1 {
 		return result, nil, errors.New(ErrorDerSigParse)
 	}
@@ -288,15 +293,15 @@ func EcdsaSign(ctx *Context, msg32 []byte, seckey []byte) (int, *EcdsaSignature,
 	if len(seckey) != LenPrivateKey {
 		return 0, nil, errors.New(ErrorPrivateKeySize)
 	}
-
+	
 	signature := newEcdsaSignature()
 	result := int(C.secp256k1_ecdsa_sign(ctx.ctx, signature.sig,
 		cBuf(msg32[:]), cBuf(seckey[:]), nil, nil))
-
+	
 	if result != 1 {
 		return result, nil, errors.New(ErrorProducingSignature)
 	}
-
+	
 	return result, signature, nil
 }
 
@@ -321,7 +326,7 @@ func EcPubkeyCreate(ctx *Context, seckey []byte) (int, *PublicKey, error) {
 	if len(seckey) != LenPrivateKey {
 		return 0, nil, errors.New(ErrorPrivateKeySize)
 	}
-
+	
 	pk := newPublicKey()
 	result := int(C.secp256k1_ec_pubkey_create(ctx.ctx, pk.pk, cBuf(seckey[:])))
 	if result != 1 {
@@ -336,7 +341,7 @@ func EcPrivkeyNegate(ctx *Context, seckey []byte) (int, error) {
 	if len(seckey) != LenPrivateKey {
 		return 0, errors.New(ErrorPrivateKeySize)
 	}
-
+	
 	result := int(C.secp256k1_ec_privkey_negate(ctx.ctx, (*C.uchar)(unsafe.Pointer(&seckey[0]))))
 	return result, nil
 }
@@ -360,7 +365,7 @@ func EcPrivkeyTweakAdd(ctx *Context, seckey []byte, tweak []byte) (int, error) {
 	if len(seckey) != LenPrivateKey {
 		return 0, errors.New(ErrorPrivateKeySize)
 	}
-
+	
 	result := int(C.secp256k1_ec_privkey_tweak_add(ctx.ctx, (*C.uchar)(unsafe.Pointer(&seckey[0])), cBuf(tweak[:])))
 	if result != 1 {
 		return result, errors.New(ErrorTweakingPrivateKey)
@@ -378,7 +383,7 @@ func EcPrivkeyTweakMul(ctx *Context, seckey []byte, tweak []byte) (int, error) {
 	if len(seckey) != LenPrivateKey {
 		return 0, errors.New(ErrorPrivateKeySize)
 	}
-
+	
 	result := int(C.secp256k1_ec_privkey_tweak_mul(ctx.ctx, (*C.uchar)(unsafe.Pointer(&seckey[0])), cBuf(tweak[:])))
 	if result != 1 {
 		return result, errors.New(ErrorTweakingPrivateKey)
@@ -394,7 +399,7 @@ func EcPubkeyTweakAdd(ctx *Context, pk *PublicKey, tweak []byte) (int, error) {
 	if len(tweak) != LenPrivateKey {
 		return 0, errors.New(ErrorTweakSize)
 	}
-
+	
 	result := int(C.secp256k1_ec_pubkey_tweak_add(ctx.ctx, pk.pk, cBuf(tweak)))
 	if result != 1 {
 		return result, errors.New(ErrorTweakingPublicKey)
@@ -409,7 +414,7 @@ func EcPubkeyTweakMul(ctx *Context, pk *PublicKey, tweak []byte) (int, error) {
 	if len(tweak) != LenPrivateKey {
 		return 0, errors.New(ErrorTweakSize)
 	}
-
+	
 	result := int(C.secp256k1_ec_pubkey_tweak_mul(ctx.ctx, pk.pk, cBuf(tweak)))
 	if result != 1 {
 		return result, errors.New(ErrorTweakingPublicKey)
@@ -425,14 +430,14 @@ func EcPubkeyCombine(ctx *Context, vPk []*PublicKey) (int, *PublicKey, error) {
 	if l < 1 {
 		return 0, nil, errors.New("Must provide at least one public key")
 	}
-
+	
 	array := C.makePubkeyArray(C.int(l))
 	for i := 0; i < l; i++ {
 		C.setArrayPubkey(array, vPk[i].pk, C.int(i))
 	}
-
+	
 	defer C.freePubkeyArray(array)
-
+	
 	pkOut := newPublicKey()
 	result := int(C.secp256k1_ec_pubkey_combine(ctx.ctx, pkOut.pk, array, C.size_t(l)))
 	if result != 1 {
@@ -461,11 +466,11 @@ func EcdsaRecoverableSignatureParseCompact(ctx *Context, signature []byte, recid
 	if len(signature) != LenCompactSig {
 		return 0, nil, errors.New(ErrorCompactSigSize)
 	}
-
+	
 	sig := newEcdsaRecoverableSignature()
 	result := int(C.secp256k1_ecdsa_recoverable_signature_parse_compact(ctx.ctx, sig.sig,
 		(*C.uchar)(unsafe.Pointer(&signature[0])), (C.int(recid))))
-
+	
 	if result != 1 {
 		return result, nil, errors.New(ErrorRecoverableSigParse)
 	}
@@ -499,14 +504,14 @@ func EcdsaSignRecoverable(ctx *Context, msg32 []byte, seckey []byte) (int, *Ecds
 	if len(seckey) != LenPrivateKey {
 		return 0, nil, errors.New(ErrorPrivateKeySize)
 	}
-
+	
 	recoverable := newEcdsaRecoverableSignature()
 	result := int(C.secp256k1_ecdsa_sign_recoverable(ctx.ctx, recoverable.sig, cBuf(msg32), cBuf(seckey), nil, nil))
 	if result != 1 {
 		return result, nil, errors.New(ErrorProducingRecoverableSignature)
 	}
 	return result, recoverable, nil
-
+	
 }
 
 // Recover an ECDSA public key from a signature. The return code is 1 if
