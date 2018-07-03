@@ -4,6 +4,7 @@ package secp256k1
 // #include "secp256k1.h"
 // #include "secp256k1_ecdh.h"
 // #include "secp256k1_recovery.h"
+// #include "lax_der_parsing.h"
 /*
 // https://groups.google.com/forum/#!topic/golang-nuts/pQueMFdY0mk
 // for secp256k1_pubkey**
@@ -250,6 +251,19 @@ func EcdsaSignatureParseDer(ctx *Context, signature []byte) (int, *EcdsaSignatur
 		(*C.uchar)(unsafe.Pointer(&signature[0])),
 		(C.size_t)(len(signature))))
 	
+	if result != 1 {
+		return result, nil, errors.New(ErrorDerSigParse)
+	}
+	return result, sig, nil
+}
+
+func EcdsaSignatureParseDerLax(ctx *Context, signature []byte) (int, *EcdsaSignature, error) {
+	sig := newEcdsaSignature()
+
+	result := int(C.secp256k1_ecdsa_signature_parse_der_lax(ctx.ctx, sig.sig,
+		(*C.uchar)(unsafe.Pointer(&signature[0])),
+		(C.size_t)(len(signature))))
+
 	if result != 1 {
 		return result, nil, errors.New(ErrorDerSigParse)
 	}

@@ -5,9 +5,10 @@ TESTARGS=$(TESTOPTIONS)
 deps: deps-secp256k1
 
 deps-secp256k1:
-		cd secp256k1/c-secp256k1 && ./autogen.sh && ./configure --enable-experimental --enable-module-ecdh --enable-module-recovery && make -j4 && cd ..
+		cd ../secp256k1 && ./autogen.sh && ./configure --enable-experimental --enable-module-ecdh --enable-module-recovery && make -j4 && make install&& cd ..
+
 deps-1:
-		cd secp256k1/c-secp256k1 && make -j4 && cd ..
+		cd secp256k1 && make -j4 && cd ..
 
 build-test: 
 		go build -o build/test bin/test/main.go
