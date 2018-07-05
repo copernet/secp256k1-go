@@ -1,6 +1,6 @@
 # secp256k1-go
 
-This package provides bindings (using cgo) to the upstream [https://github.com/bitcoin-core/secp256k1](libsecp256k1) C library.
+This package provides bindings (using cgo) to the upstream [https://github.com/copernet/secp256k1](libsecp256k1) C library.
 
 It exposes several high level functions for elliptic curve operations over the 
 secp256k1 curve, namely ECDSA, point & scalar operations, ECDH, and recoverable
@@ -19,18 +19,6 @@ signature recovery. These are included with the default installation, and
 may eventually be discontinued by the same (as has happened with Schnorr). 
 
 ## Contributing
-
-To start developing, clone the package from github, and from the
-source directory, run the following to install the package.
-
-    git submodule update --init
-    make install
-    
-Tests can be run by calling `make test`
-Coverage can be build by calling `make coverage`
-To display a HTML code coverage report, call `make coverage-html`
-
-Please make sure to include tests for new features.  
 
 ## Rationale behind API
 
