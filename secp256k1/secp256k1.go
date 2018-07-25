@@ -233,7 +233,12 @@ func EcdsaSignatureSerializeCompact(ctx *Context, sig *EcdsaSignature) (int, []b
 }
 
 func EcdsaSignatureNormalize(ctx *Context, sigout *EcdsaSignature, sigin *EcdsaSignature) (int, error) {
-	result := int(C.secp256k1_ecdsa_signature_normalize(ctx.ctx, sigout.sig, sigin.sig))
+	var result int
+	if sigout != nil {
+		result = int(C.secp256k1_ecdsa_signature_normalize(ctx.ctx, sigout.sig, sigin.sig))
+	} else {
+		result = int(C.secp256k1_ecdsa_signature_normalize(ctx.ctx, nil, sigin.sig))
+	}
 	return result, nil
 }
 
