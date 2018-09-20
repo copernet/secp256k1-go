@@ -309,19 +309,20 @@ func EcdsaSign(ctx *Context, msg32 []byte, seckey []byte) (int, *EcdsaSignature,
 	if len(msg32) != LenMsgHash {
 		return 0, nil, errors.New(ErrorMsg32Size)
 	}
-	if len(seckey) != LenPrivateKey {
-		return 0, nil, errors.New(ErrorPrivateKeySize)
+
+	if len(seckey) == LenPrivateKey || (len(seckey) == LenCompressed && seckey[32] == 1) {
+		signature := newEcdsaSignature()
+		result := int(C.secp256k1_ecdsa_sign(ctx.ctx, signature.sig,
+			cBuf(msg32[:]), cBuf(seckey[:]), nil, nil))
+
+		if result != 1 {
+			return result, nil, errors.New(ErrorProducingSignature)
+		}
+
+		return result, signature, nil
 	}
-	
-	signature := newEcdsaSignature()
-	result := int(C.secp256k1_ecdsa_sign(ctx.ctx, signature.sig,
-		cBuf(msg32[:]), cBuf(seckey[:]), nil, nil))
-	
-	if result != 1 {
-		return result, nil, errors.New(ErrorProducingSignature)
-	}
-	
-	return result, signature, nil
+
+	return 0, nil, errors.New(ErrorPrivateKeySize)
 }
 
 // Verify a secret key. Returns 1 if the secret key is valid, or 0 if an
