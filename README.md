@@ -1,4 +1,4 @@
-# secp256k1-go
+# secp256k1-go [![Build Status](https://travis-ci.org/copernet/secp256k1-go.svg?branch=master)](https://travis-ci.org/copernet/secp256k1-go)
 
 This package provides bindings (using cgo) to the upstream [https://github.com/copernet/secp256k1](libsecp256k1) C library.
 

@@ -6,9 +6,8 @@ branches:
     - "master"
 
 go:
-  - 1.7.x
-  - 1.8.x
-  - master
+  - 1.10.x
+
 
 cache:
   directories:
@@ -21,6 +20,9 @@ addons:
       - sourceline: ppa:masterminds/glide
     packages:
       - glide
+
+before_install:
+  - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/lib
 
 install:
   - git clone https://github.com/copernet/secp256k1.git /tmp/secp256k1
